@@ -5,6 +5,9 @@ options:
 settings:
   base:
     SWIFT_VERSION: '5.0'
+    # Xcode 16.4 can strongly link an overlay absent from the iOS 18.5 simulator.
+    # This app uses Objective-C WebKit APIs and does not require overlay symbols.
+    OTHER_LDFLAGS: '$(inherited) -weak-lswiftWebKit'
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     IPHONEOS_DEPLOYMENT_TARGET: '16.0'
     TARGETED_DEVICE_FAMILY: '1,2'
