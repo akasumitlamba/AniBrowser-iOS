@@ -247,14 +247,14 @@ object AniHomeManager {
         return destFile.absolutePath
     }
 
-    fun removeTile(context: Context, id: String) {
+    fun removeTile(context: Context, id: String, notify: Boolean = true) {
         val current = getTiles(context).toMutableList()
         val removed = current.removeAll { it.id == id }
         if (removed) {
             saveTiles(context, current)
             val iconFile = File(getIconsDir(context), "$id.png")
             if (iconFile.exists()) iconFile.delete()
-            onTilesChanged?.invoke()
+            if (notify) onTilesChanged?.invoke()
         }
     }
 

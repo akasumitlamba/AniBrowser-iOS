@@ -12,79 +12,89 @@ object AnimeHub {
 <style>
 :root {
   color-scheme: dark;
-  --bg: #080c16;
-  --surface: rgba(18, 26, 43, 0.7);
-  --line: rgba(255, 255, 255, 0.12);
+  --bg: #060913;
+  --surface: rgba(255, 255, 255, 0.08);
+  --line: rgba(255, 255, 255, 0.22);
   --text: #f8fafc;
   --muted: #94a3b8;
   --cyan: #38bdf8;
   --accent: #ff6b35;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-html, body {
-  min-height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  overflow-x: hidden;
+html {
+  height: 100%;
+  background: #080c18;
 }
 body {
-  background-color: #070a13;
-  background-image:
-    radial-gradient(ellipse 90% 65% at 15% -10%, rgba(37, 99, 235, 0.32) 0%, transparent 65%),
-    radial-gradient(ellipse 70% 55% at 88% 12%, rgba(147, 51, 234, 0.26) 0%, transparent 60%),
-    radial-gradient(ellipse 80% 65% at 50% 105%, rgba(14, 165, 233, 0.2) 0%, transparent 65%),
-    radial-gradient(circle at 75% 65%, rgba(236, 72, 153, 0.12) 0%, transparent 45%);
-  background-attachment: fixed;
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  box-sizing: border-box;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
   padding: clamp(14px, 2.5vw, 28px) clamp(14px, 3.2vw, 36px) 36px;
+  background-color: #080c18;
+  background-image:
+    radial-gradient(circle 900px at 10% 12%, rgba(59, 130, 246, 0.55) 0%, transparent 55%),
+    radial-gradient(circle 800px at 90% 15%, rgba(217, 70, 239, 0.52) 0%, transparent 55%),
+    radial-gradient(circle 950px at 50% 50%, rgba(14, 165, 233, 0.42) 0%, transparent 60%),
+    radial-gradient(circle 850px at 85% 85%, rgba(244, 63, 94, 0.48) 0%, transparent 55%),
+    radial-gradient(circle 850px at 15% 85%, rgba(16, 185, 129, 0.42) 0%, transparent 55%),
+    linear-gradient(180deg, #0e1628 0%, #060912 100%);
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 button, input { font: inherit; }
 button { border: 0; color: inherit; }
 .shell { width: 100%; max-width: 1400px; margin: auto; }
 
-/* Frosted Glass Top Bar */
+/* Apple Liquid Glass Top Bar */
 .topbar {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 62px;
-  padding: 8px 14px 8px 16px;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 24px;
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  min-height: 64px;
+  padding: 8px 16px 8px 18px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 50%, rgba(255, 255, 255, 0.07) 100%);
+  backdrop-filter: blur(36px) saturate(210%) brightness(112%);
+  -webkit-backdrop-filter: blur(36px) saturate(210%) brightness(112%);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 26px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1.5px 1px rgba(255, 255, 255, 0.45), inset 0 -1px 1px rgba(0, 0, 0, 0.25);
 }
-.brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
-.brand img { width: 40px; height: 40px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3)); }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand img { width: 42px; height: 42px; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }
 .brand-copy { min-width: 0; }
-.brand-name { font-size: 18px; font-weight: 750; letter-spacing: -0.3px; color: #ffffff; }
-.brand-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; color: #ffffff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 .spacer { flex: 1; }
 
 .actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .icon-btn, .shield {
-  height: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 14px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.icon-btn { width: 40px; padding: 0; color: #e2e8f0; }
+.icon-btn { width: 42px; padding: 0; color: #f1f5f9; }
 .icon-btn:active, .shield:active {
-  transform: scale(0.94);
-  background: rgba(255, 255, 255, 0.14);
+  transform: scale(0.93);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.45);
 }
 .icon-btn svg, .shield svg {
-  width: 19px;
-  height: 19px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2.1;
@@ -92,28 +102,28 @@ button { border: 0; color: inherit; }
   stroke-linejoin: round;
 }
 .shield {
-  gap: 7px;
-  padding: 0 13px;
+  gap: 8px;
+  padding: 0 14px;
   color: #34d399;
-  background: rgba(16, 185, 129, 0.16);
-  border-color: rgba(16, 185, 129, 0.35);
-  font-size: 12.5px;
-  font-weight: 650;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.24) 0%, rgba(16, 185, 129, 0.08) 100%);
+  border-color: rgba(52, 211, 153, 0.45);
+  font-size: 13px;
+  font-weight: 700;
   white-space: nowrap;
 }
 .shield.off {
   color: #94a3b8;
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
-/* Grid & Cards - Apple TV Style */
+/* Grid & Cards - Apple Liquid Glass */
 .grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  column-gap: 16px;
-  row-gap: 20px;
-  margin-top: 24px;
+  column-gap: 18px;
+  row-gap: 22px;
+  margin-top: 26px;
 }
 .tile {
   position: relative;
@@ -132,37 +142,37 @@ button { border: 0; color: inherit; }
   aspect-ratio: 1.62 / 1;
   padding: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.055);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.035) 45%, rgba(255, 255, 255, 0.065) 100%);
+  backdrop-filter: blur(34px) saturate(210%) brightness(114%);
+  -webkit-backdrop-filter: blur(34px) saturate(210%) brightness(114%);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.42), inset 0 1.5px 1px rgba(255, 255, 255, 0.42), inset 0 -1px 1px rgba(0, 0, 0, 0.22);
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .card::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 42%, transparent 65%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.04) 40%, transparent 65%);
   pointer-events: none;
-  border-radius: 22px;
+  border-radius: 24px;
 }
 .tile:active .card {
   transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255, 255, 255, 0.35);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), inset 0 1.5px 1px rgba(255, 255, 255, 0.55);
 }
 .mark {
   position: relative;
   z-index: 1;
-  width: 64px;
-  height: 64px;
-  padding: 9px;
+  width: 68px;
+  height: 68px;
+  padding: 10px;
   background: #ffffff;
-  border-radius: 17px;
-  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.38);
+  border-radius: 19px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.42);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -185,24 +195,25 @@ button { border: 0; color: inherit; }
   height: 100%;
   display: grid;
   place-items: center;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.15);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.18);
   color: #fff;
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 800;
 }
 .tile-name {
   width: 100%;
-  margin-top: 8px;
-  color: #e2e8f0;
-  font-size: 13px;
-  font-weight: 650;
+  margin-top: 9px;
+  color: #f1f5f9;
+  font-size: 13.5px;
+  font-weight: 700;
   line-height: 1.2;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   letter-spacing: -0.15px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 .tile-host { display: none!important; }
 
@@ -216,7 +227,7 @@ button { border: 0; color: inherit; }
   height: 28px;
   border-radius: 50%;
   background: #ef4444;
-  border: 2px solid var(--bg);
+  border: 2px solid #060913;
   place-items: center;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
@@ -224,7 +235,7 @@ button { border: 0; color: inherit; }
 .edit .delete { display: grid; }
 .delete svg { width: 14px; height: 14px; stroke: white; stroke-width: 2.2; }
 
-/* Modals with Frosted Glass */
+/* Modals with Apple Liquid Glass */
 .overlay {
   display: none;
   position: fixed;
@@ -234,21 +245,21 @@ button { border: 0; color: inherit; }
   justify-content: center;
   padding: 18px;
   background: rgba(2, 6, 18, 0.78);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 .overlay.show { display: flex; }
 .modal {
-  width: min(480px, 100%);
-  max-height: min(680px, 88vh);
+  width: min(500px, 100%);
+  max-height: min(700px, 88vh);
   overflow-y: auto;
-  padding: 24px;
-  background: rgba(15, 23, 42, 0.88);
-  backdrop-filter: blur(32px) saturate(180%);
-  -webkit-backdrop-filter: blur(32px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 26px;
-  box-shadow: 0 28px 65px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  padding: 26px;
+  background: linear-gradient(135deg, rgba(22, 32, 54, 0.92) 0%, rgba(15, 23, 42, 0.94) 100%);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 28px;
+  box-shadow: 0 32px 70px rgba(0, 0, 0, 0.7), inset 0 1.5px 1px rgba(255, 255, 255, 0.25);
 }
 .modal-head {
   display: flex;
@@ -263,19 +274,19 @@ button { border: 0; color: inherit; }
   gap: 10px;
 }
 .modal-head svg { width: 22px; height: 22px; stroke: var(--cyan); fill: none; stroke-width: 2; }
-.modal h2 { font-size: 20px; font-weight: 750; margin: 0; color: #fff; }
+.modal h2 { font-size: 20px; font-weight: 800; margin: 0; color: #fff; }
 .modal p { font-size: 13px; color: var(--muted); margin: 0 0 18px; }
 
 /* Sleek Icon-only Refresh Button in Modal */
 .refresh-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
   color: #38bdf8;
-  background: rgba(56, 189, 248, 0.12);
-  border-color: rgba(56, 189, 248, 0.3);
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
 }
-.refresh-btn:active { background: rgba(56, 189, 248, 0.22); }
+.refresh-btn:active { background: rgba(56, 189, 248, 0.25); }
 .refresh-btn svg { width: 18px; height: 18px; stroke-width: 2.2; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 .refresh-btn.spinning svg { animation: spin 0.75s linear infinite; }
@@ -283,93 +294,97 @@ button { border: 0; color: inherit; }
 label { display: block; color: #cbd5e1; font-size: 12px; font-weight: 650; margin: 14px 0 6px; }
 .input {
   width: 100%;
-  height: 46px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  height: 48px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(11, 17, 29, 0.85);
   color: var(--text);
-  padding: 0 14px;
+  padding: 0 15px;
   outline: 0;
   user-select: text;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.input:focus { border-color: var(--cyan); }
+.input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
 .buttons { display: flex; gap: 10px; margin-top: 22px; }
 .btn {
   flex: 1;
-  min-height: 44px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.09);
+  min-height: 46px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 .btn:active { transform: scale(0.97); }
-.primary { background: #2563eb; color: #fff; }
-.add { background: #059669; color: #fff; }
+.primary { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #fff; border: 0; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35); }
+.add { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; border: 0; box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35); }
 
 .manage { display: flex; flex-direction: column; gap: 10px; }
 .row {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 9px 11px;
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 16px;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 17px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .row-mark {
-  width: 38px;
-  height: 38px;
-  padding: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 6px;
   display: grid;
   place-items: center;
   flex: none;
   background: white;
   color: #152033;
-  border-radius: 11px;
+  border-radius: 12px;
 }
 .row-mark img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .row-copy { min-width: 0; flex: 1; }
 .row-copy input {
   width: 100%;
-  padding: 2px 4px;
+  padding: 3px 5px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 7px;
   color: white;
   font-weight: 650;
 }
-.row-copy input:focus { border-color: var(--cyan); outline: 0; background: rgba(0,0,0,0.25); }
-.url { display: block; padding: 2px 4px; color: var(--muted); font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-copy input:focus { border-color: var(--cyan); outline: 0; background: rgba(0,0,0,0.3); }
+.url { display: block; padding: 2px 5px; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .remove {
-  height: 34px;
-  padding: 0 10px;
-  border-radius: 10px;
-  background: rgba(239, 68, 68, 0.15);
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 11px;
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.35);
   color: #f87171;
   font-size: 12px;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   cursor: pointer;
+  transition: all 0.18s ease;
 }
-.remove:active { background: rgba(239, 68, 68, 0.28); }
+.remove:active { transform: scale(0.94); background: rgba(239, 68, 68, 0.32); }
 
 .search-modal { align-items: flex-start; padding-top: max(24px, 8vh); }
 .searchbox {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: min(620px, 100%);
-  padding: 9px 16px;
-  background: rgba(15, 23, 42, 0.9);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 20px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+  width: min(640px, 100%);
+  padding: 10px 18px;
+  background: linear-gradient(135deg, rgba(22, 32, 54, 0.94) 0%, rgba(15, 23, 42, 0.96) 100%);
+  backdrop-filter: blur(36px);
+  -webkit-backdrop-filter: blur(36px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 22px;
+  box-shadow: 0 28px 65px rgba(0, 0, 0, 0.7);
 }
 .searchbox svg { width: 22px; height: 22px; stroke: var(--cyan); fill: none; flex-shrink: 0; }
 .searchbox input {
@@ -383,7 +398,7 @@ label { display: block; color: #cbd5e1; font-size: 12px; font-weight: 650; margi
   padding: 9px 0;
   user-select: text;
 }
-.empty { text-align: center; color: var(--muted); padding: 25px; }
+.empty { text-align: center; color: var(--muted); padding: 25px; font-size: 14px; }
 
 /* Responsive Media Queries */
 @media (max-width: 1024px) {
@@ -425,7 +440,6 @@ label { display: block; color: #cbd5e1; font-size: 12px; font-weight: 650; margi
     <img src="https://anibrowser.local/assets/logo.png" alt="">
     <div class="brand-copy">
       <div class="brand-name">AniBrowser</div>
-      <div class="brand-sub">Private, focused browsing</div>
     </div>
   </div>
   <div class="spacer"></div>
@@ -437,6 +451,7 @@ label { display: block; color: #cbd5e1; font-size: 12px; font-weight: 650; margi
     ${iconButton("openSearch()", "Search", "<circle cx='10.5' cy='10.5' r='7.5'/><path d='m16 16 5 5'/>")}
     ${iconButton("openAdd()", "Add website", "<path d='M12 5v14M5 12h14'/>")}
     ${iconButton("openManage()", "Manage websites", "<path d='m4 20 4.2-1 11-11a2.8 2.8 0 0 0-4-4l-11 11L4 20Z'/><path d='m13.8 5.4 4 4'/>")}
+    ${iconButton("openSettings()", "Settings", "<path d='M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54A.484.484 0 0 0 13.92 2.4h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.73 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z'/>")}
   </div>
 </header>
 <main class="grid">${buildTilesHtml(tiles)}</main>
@@ -457,6 +472,7 @@ function launch(url) { if (window.AniHomeBridge) AniHomeBridge.openUrl(url); }
 function openSearch() { show('search'); setTimeout(() => byId('q').focus(), 80); }
 function openAdd() { show('addModal'); setTimeout(() => byId('siteUrl').focus(), 80); }
 function openManage() { show('manageModal'); }
+function openSettings() { if (window.AniHomeBridge) AniHomeBridge.openSettings(); }
 function submitSearch() {
   let q = byId('q').value.trim();
   if (!q) return;
@@ -470,8 +486,16 @@ function addSite() {
   AniHomeBridge.addTile(u, n);
 }
 function removeSite(e, id) {
-  e.stopPropagation();
-  AniHomeBridge.deleteTile(id);
+  if (e) e.stopPropagation();
+  const row = (e && e.target) ? e.target.closest('.row') : document.querySelector('.row[data-id="' + id + '"]');
+  if (row) row.remove();
+  const tile = document.querySelector('.tile[data-id="' + id + '"]');
+  if (tile) tile.remove();
+  const manageDiv = document.querySelector('.manage');
+  if (manageDiv && manageDiv.querySelectorAll('.row').length === 0) {
+    manageDiv.innerHTML = '<div class="empty">No sites added yet.</div>';
+  }
+  if (window.AniHomeBridge) AniHomeBridge.deleteTile(id);
 }
 function renameSite(id, v) {
   if (v.trim()) AniHomeBridge.updateTile(id, v.trim());
@@ -501,7 +525,7 @@ document.addEventListener('keydown', e => {
         } else {
             "<span class=\"monogram\">${escapeHtml(tile.title.take(2).uppercase())}</span>"
         }
-        """<article class="tile" onclick="launch('${escapeJs(tile.url)}')"><button class="delete" onclick="removeSite(event,'${tile.id}')" aria-label="Remove ${escapeHtml(tile.title)}"><svg viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></svg></button><div class="card"><div class="mark">$icon</div></div><div class="tile-name">${escapeHtml(tile.title)}</div></article>"""
+        """<article class="tile" data-id="${tile.id}" onclick="launch('${escapeJs(tile.url)}')"><button class="delete" onclick="removeSite(event,'${tile.id}')" aria-label="Remove ${escapeHtml(tile.title)}"><svg viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></svg></button><div class="card"><div class="mark">$icon</div></div><div class="tile-name">${escapeHtml(tile.title)}</div></article>"""
     }
 
     private fun manageModal(tiles: List<AniHomeTile>): String {
@@ -514,7 +538,7 @@ document.addEventListener('keydown', e => {
                 } else {
                     "<b>${escapeHtml(tile.title.take(2).uppercase())}</b>"
                 }
-                """<div class="row"><div class="row-mark">$icon</div><div class="row-copy"><input value="${escapeHtml(tile.title)}" onchange="renameSite('${tile.id}',this.value)"><span class="url">${escapeHtml(tile.url)}</span></div><button class="remove" onclick="removeSite(event,'${tile.id}')"><span>Remove</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button></div>"""
+                """<div class="row" data-id="${tile.id}"><div class="row-mark">$icon</div><div class="row-copy"><input value="${escapeHtml(tile.title)}" onchange="renameSite('${tile.id}',this.value)"><span class="url">${escapeHtml(tile.url)}</span></div><button class="remove" onclick="removeSite(event,'${tile.id}')"><span>Remove</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button></div>"""
             }
         }
         return """<div id="manageModal" class="overlay" onclick="backdrop(event,'manageModal')"><section class="modal"><div class="modal-head"><div class="modal-head-title"><svg viewBox="0 0 24 24"><path d="m4 20 4.2-1 11-11a2.8 2.8 0 0 0-4-4l-11 11L4 20Z"/><path d="m13.8 5.4 4 4"/></svg><h2>Manage sites</h2></div><button class="icon-btn refresh-btn" onclick="triggerRefresh(this)" title="Refresh website logos" aria-label="Refresh website logos"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg></button></div><p>Rename or remove shortcuts from Home.</p><div class="manage">$rows</div><div class="buttons"><button class="btn primary" onclick="hide('manageModal')">Done</button></div></section></div>"""

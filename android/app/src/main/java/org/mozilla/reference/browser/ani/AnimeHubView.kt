@@ -61,7 +61,7 @@ class AnimeHubView @JvmOverloads constructor(
         }
 
         @JavascriptInterface fun deleteTile(id: String) = post {
-            AniHomeManager.removeTile(context, id)
+            AniHomeManager.removeTile(context, id, notify = false)
         }
     }
 

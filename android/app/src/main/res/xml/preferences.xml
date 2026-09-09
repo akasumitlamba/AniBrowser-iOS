@@ -62,6 +62,12 @@
     <PreferenceCategory
         android:title="AniBrowser">
 
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="pref_key_adshield"
+            android:defaultValue="true"
+            android:title="Ad Shield"
+            android:summary="Block intrusive ads, popup scripts, and tracking redirects" />
+
         <androidx.preference.Preference
             android:key="@string/pref_key_about_page"
             android:title="@string/preferences_about_page" />

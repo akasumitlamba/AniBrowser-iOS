@@ -212,7 +212,6 @@ class ToolbarIntegration(
             indicators =
                 listOf(
                     DisplayToolbar.Indicators.SECURITY,
-                    DisplayToolbar.Indicators.TRACKING_PROTECTION,
                 )
             displayIndicatorSeparator = false
             menuController = browserMenuController

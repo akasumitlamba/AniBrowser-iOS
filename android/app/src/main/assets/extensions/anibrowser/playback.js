@@ -6,6 +6,27 @@
   const attached = new WeakSet();
   const attempts = new WeakMap();
   const recovering = new WeakSet();
+
+  // Background play: prevent web players from auto-pausing when tab/window is hidden
+  try {
+    if (typeof document !== "undefined") {
+      Object.defineProperty(document, "hidden", { get: () => false, configurable: true });
+      Object.defineProperty(document, "visibilityState", { get: () => "visible", configurable: true });
+      Object.defineProperty(document, "webkitHidden", { get: () => false, configurable: true });
+      Object.defineProperty(document, "webkitVisibilityState", { get: () => "visible", configurable: true });
+    }
+  } catch (_) {}
+  try {
+    const stopProp = e => { if (e && e.stopImmediatePropagation) e.stopImmediatePropagation(); };
+    if (typeof window !== "undefined" && window.addEventListener) {
+      window.addEventListener("visibilitychange", stopProp, true);
+      window.addEventListener("webkitvisibilitychange", stopProp, true);
+    }
+    if (typeof document !== "undefined" && document.addEventListener) {
+      document.addEventListener("visibilitychange", stopProp, true);
+      document.addEventListener("webkitvisibilitychange", stopProp, true);
+    }
+  } catch (_) {}
   function apply(video) {
     if (!video.isConnected) return;
     // Bound retries when a player continually fights the selected rate.

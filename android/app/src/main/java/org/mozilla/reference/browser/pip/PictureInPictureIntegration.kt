@@ -20,7 +20,16 @@ class PictureInPictureIntegration(
     private val store: BrowserStore,
     activity: Activity,
     private val customTabId: String?,
-    private val whiteList: List<String> = listOf("youtube.com/tv"),
+    private val whiteList: List<String> = listOf(
+        "youtube.com",
+        "crunchyroll.com",
+        "netflix.com",
+        "twitch.tv",
+        "vimeo.com",
+        "hianime",
+        "animepahe",
+        "aniwatch",
+    ),
 ) : LifecycleAwareFeature {
     private var scope: CoroutineScope? = null
     private val pictureFeature = PictureInPictureFeature(store, activity)
@@ -40,15 +49,21 @@ class PictureInPictureIntegration(
         scope?.cancel()
     }
 
-    fun onHomePressed() =
-        if (whiteListed) {
-            pictureFeature.enterPipModeCompat()
-        } else {
-            pictureFeature.onHomePressed()
+    fun onHomePressed(): Boolean {
+        val selected = store.state.findTabOrCustomTabOrSelectedTab(customTabId)
+        val isMediaPlaying = selected?.mediaSessionState?.playbackState ==
+            mozilla.components.concept.engine.mediasession.MediaSession.PlaybackState.PLAYING
+        val isFullScreen = selected?.content?.fullScreen == true
+
+        if (isMediaPlaying || isFullScreen || whiteListed) {
+            val entered = pictureFeature.enterPipModeCompat()
+            if (entered) return true
         }
+        return pictureFeature.onHomePressed()
+    }
 
     private fun isWhitelisted(url: String): Boolean {
-        val exists = whiteList.firstOrNull { url.contains(it) }
+        val exists = whiteList.firstOrNull { url.contains(it, ignoreCase = true) }
         return exists != null
     }
 }

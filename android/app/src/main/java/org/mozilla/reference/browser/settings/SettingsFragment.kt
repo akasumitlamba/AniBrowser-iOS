@@ -91,6 +91,14 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 true
             }
         }
+        findPreference<SwitchPreferenceCompat>("pref_key_adshield")?.apply {
+            val prefs = requireContext().getSharedPreferences("anibrowser_prefs", android.content.Context.MODE_PRIVATE)
+            isChecked = prefs.getBoolean("adshield_enabled", true)
+            onPreferenceChangeListener = OnPreferenceChangeListener { _, newValue ->
+                prefs.edit().putBoolean("adshield_enabled", newValue as Boolean).apply()
+                true
+            }
+        }
         if (!AutofillPreference.isSupported(requireContext())) {
             preferenceAutofill?.isVisible = false
         } else {
