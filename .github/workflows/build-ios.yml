@@ -12,6 +12,9 @@ jobs:
     if: github.event.repository.private == false
     runs-on: macos-15
     timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: ios
     steps:
       - uses: actions/checkout@v4
       - name: Check playback and bridge
@@ -53,10 +56,10 @@ jobs:
         with:
           name: AniBrowser-iOS-unsigned
           path: |
-            output/AniBrowser-unsigned.ipa
-            output/SHA256.txt
-            output/*-home.png
-            INSTALL-WINDOWS.md
+            ios/output/AniBrowser-unsigned.ipa
+            ios/output/SHA256.txt
+            ios/output/*-home.png
+            ios/INSTALL-WINDOWS.md
           retention-days: 3
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
@@ -64,8 +67,8 @@ jobs:
         with:
           name: iOS-build-log
           path: |
-            build.log
-            simulator-build.log
-            output/diagnostics/
-            output/*-home.png
+            ios/build.log
+            ios/simulator-build.log
+            ios/output/diagnostics/
+            ios/output/*-home.png
           retention-days: 3

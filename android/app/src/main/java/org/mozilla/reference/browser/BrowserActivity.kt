@@ -1,0 +1,175 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+package org.mozilla.reference.browser
+
+import android.content.Context
+import android.content.Intent
+import android.graphics.Color
+import android.os.Bundle
+import android.util.AttributeSet
+import android.view.View
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.fragment.app.Fragment
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+import mozilla.components.browser.state.state.WebExtensionState
+import mozilla.components.concept.engine.EngineView
+import mozilla.components.feature.intent.ext.EXTRA_SESSION_ID
+import mozilla.components.lib.crash.Crash
+import mozilla.components.support.base.feature.ActivityResultHandler
+import mozilla.components.support.base.feature.UserInteractionHandler
+import mozilla.components.support.base.log.logger.Logger
+import mozilla.components.support.ktx.android.view.setupPersistentInsets
+import mozilla.components.support.utils.SafeIntent
+import mozilla.components.support.webextensions.WebExtensionPopupObserver
+import org.mozilla.reference.browser.addons.WebExtensionActionPopupActivity
+import org.mozilla.reference.browser.browser.BrowserFragment
+import org.mozilla.reference.browser.browser.CrashIntegration
+import org.mozilla.reference.browser.ext.components
+
+/** Activity that holds the [BrowserFragment]. */
+open class BrowserActivity : AppCompatActivity() {
+    override fun onResume() {
+        super.onResume()
+        org.mozilla.reference.browser.ani.NavigationGuard.bind(this)
+    }
+
+    override fun onPause() {
+        org.mozilla.reference.browser.ani.NavigationGuard.unbind(this)
+        super.onPause()
+    }
+    private lateinit var crashIntegration: CrashIntegration
+
+    private val sessionId: String?
+        get() = SafeIntent(intent).getStringExtra(EXTRA_SESSION_ID)
+
+    private val webExtensionPopupObserver by lazy {
+        WebExtensionPopupObserver(components.core.store, ::openPopup)
+    }
+
+    /** Returns a new instance of [BrowserFragment] to display. */
+    open fun createBrowserFragment(sessionId: String?): Fragment = BrowserFragment.create(sessionId)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        setContentView(R.layout.activity_main)
+        super.onCreate(savedInstanceState)
+
+        if (this is org.mozilla.reference.browser.ani.WebsiteActivity) {
+            enableEdgeToEdge(SystemBarStyle.dark(Color.TRANSPARENT))
+            window.setupPersistentInsets()
+        } else {
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.container)) { v, insets ->
+                val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars() or androidx.core.view.WindowInsetsCompat.Type.displayCutout())
+                val keyboard = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime()).bottom
+                v.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, keyboard))
+                androidx.core.view.WindowInsetsCompat.CONSUMED
+            }
+            androidx.core.view.ViewCompat.requestApplyInsets(findViewById(R.id.container))
+        }
+
+        components.notificationsDelegate.bindToActivity(this)
+
+        if (savedInstanceState == null) {
+            if (this !is org.mozilla.reference.browser.ani.WebsiteActivity && components.core.store.state.tabs.isEmpty()) {
+                components.useCases.tabsUseCases.addTab("about:home", selectTab = true)
+            }
+            supportFragmentManager.beginTransaction().apply {
+                replace(R.id.container, createBrowserFragment(sessionId))
+                commit()
+            }
+        }
+
+        crashIntegration =
+            CrashIntegration(this, components.analytics.crashReporter) { crash ->
+                onNonFatalCrash(crash)
+            }
+        lifecycle.addObserver(crashIntegration)
+
+        NotificationManager.checkAndNotifyPolicy(this)
+        lifecycle.addObserver(webExtensionPopupObserver)
+
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    supportFragmentManager.fragments.forEach {
+                        if (it is UserInteractionHandler && it.onBackPressed()) {
+                            return
+                        }
+                    }
+                    finish()
+                }
+            },
+        )
+    }
+
+    @Suppress("DEPRECATION") // ComponentActivity wants us to use registerForActivityResult
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        Logger.info(
+            "Activity onActivityResult received with " +
+                "requestCode: $requestCode, resultCode: $resultCode, data: $data"
+        )
+
+        supportFragmentManager.fragments.forEach {
+            if (it is ActivityResultHandler && it.onActivityResult(requestCode, data, resultCode)) {
+                return
+            }
+        }
+
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        components.notificationsDelegate.unBindActivity(this)
+    }
+
+    override fun onUserLeaveHint() {
+        supportFragmentManager.fragments.forEach {
+            if (it is UserInteractionHandler && it.onHomePressed()) {
+                return
+            }
+        }
+
+        super.onUserLeaveHint()
+    }
+
+    override fun onCreateView(
+        parent: View?,
+        name: String,
+        context: Context,
+        attrs: AttributeSet,
+    ): View? =
+        when (name) {
+            EngineView::class.java.name -> {
+                components.core.engine.createView(context, attrs).asView()
+            }
+
+            else -> {
+                super.onCreateView(parent, name, context, attrs)
+            }
+        }
+
+    private fun onNonFatalCrash(crash: Crash) {
+        Snackbar.make(findViewById(android.R.id.content), R.string.crash_report_non_fatal_message, LENGTH_LONG)
+            .setAction(R.string.crash_report_non_fatal_action) {
+                crashIntegration.sendCrashReport(crash)
+            }
+            .show()
+    }
+
+    private fun openPopup(webExtensionState: WebExtensionState) {
+        val intent = Intent(this, WebExtensionActionPopupActivity::class.java)
+        intent.putExtra("web_extension_id", webExtensionState.id)
+        intent.putExtra("web_extension_name", webExtensionState.name)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+    }
+}

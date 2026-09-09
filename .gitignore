@@ -1,6 +1,36 @@
-build/
-simulator-build/
-*.log
+# Local development and generated output
+**/build/
+**/simulator-build/
+**/.gradle/
+**/.kotlin/
+**/node_modules/
+**/*.xcodeproj/
 output/
-*.xcodeproj/
+.tools/
+*.log
 .DS_Store
+# Credentials and signing material
+.env*
+**/.env*
+**/local.properties
+**/.sentry_token
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.mobileprovision
+# Private project context and captures
+**/AGENTS.md
+**/AI-CONTEXT.md
+**/BUILD-STATUS.md
+**/ANIBROWSER.md
+**/*PROMPT*.md
+**/*prompt-log*
+phone-*.png
+tablet-*.png
+qa-*.xml
+# Installers belong in build artifacts, not source control
+*.apk
+*.aab
+*.ipa
+*.exe

@@ -1,0 +1,17 @@
+name: Application source checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  controllers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node --test android/app/src/test/playback.test.cjs android/app/src/test/navigation.test.cjs
+      - run: node --test ios/Tests/*.test.cjs

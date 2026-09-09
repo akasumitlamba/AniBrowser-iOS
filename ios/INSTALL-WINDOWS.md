@@ -4,7 +4,7 @@ You need Windows, an iPhone/iPad with iOS/iPadOS 16 or newer, a USB cable, a fre
 
 ## Get the IPA
 
-In the iOS GitHub repository, select **Actions → Build free iOS IPA → Run workflow**. After a successful run, download **AniBrowser-iOS-unsigned** under Artifacts. Extract the ZIP on Windows. Use **AniBrowser-unsigned.ipa**, not the ZIP.
+In the AniBrowser GitHub repository, select **Actions → Build free iOS IPA → Run workflow**. After a successful run, download **AniBrowser-iOS-unsigned** under Artifacts. Extract the ZIP on Windows. Use **AniBrowser-unsigned.ipa**, not the ZIP.
 
 The workflow uses a standard macOS runner in a **public** repository, which GitHub provides free. It refuses private repository runs. It needs no Apple credentials or paid runner. Artifacts expire after three days; save the IPA on your PC or run the workflow again.
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Deep navy-black background — feels like a theatre screen -->
+    <color name="dark">#FF0F1117</color>
+    <!-- Slightly deeper for nav/status bars -->
+    <color name="evenDarker">#FF090B10</color>
+    <!-- Anime-orange accent: matches Crunchyroll, streaming UIs -->
+    <color name="accent">#FFFF6B35</color>
+
+    <!-- Toolbar -->
+    <color name="toolbarBackgroundColor">#FF0F1117</color>
+    <!-- URL field pill — slightly lighter than the toolbar -->
+    <color name="toolbarUrlBoxColor">#FF1E2130</color>
+
+    <!-- Icon tint — pure white for clarity on dark bg -->
+    <color name="icons">#FFFFFFFF</color>
+
+    <!-- Overriding color of tab counter icon in toolbar -->
+    <color name="mozac_ui_tabcounter_default_tint" tools:ignore="UnusedResources">@color/icons</color>
+</resources>

@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "AniBrowser Playback",
+  "version": "0.2.0",
+  "browser_specific_settings": { "gecko": { "id": "playback@anibrowser.local" } },
+  "permissions": ["nativeMessaging", "geckoViewAddons", "tabs", "storage", "webRequest", "webRequestBlocking", "<all_urls>"],
+  "background": { "scripts": ["background.js"] },
+  "content_scripts": [{
+    "matches": ["http://*/*", "https://*/*"],
+    "js": ["adblocker.js", "playback.js"],
+    "all_frames": true,
+    "match_about_blank": true,
+    "run_at": "document_start"
+  }]
+}

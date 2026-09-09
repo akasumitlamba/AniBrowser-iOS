@@ -1,0 +1,84 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+"use strict";
+const allowed = [1, 1.25, 1.5, 1.75, 2];
+let speed = 1;
+let nativePort;
+const pending = new Map();
+const requests = new Map();
+const newWindows = new Set();
+browser.tabs.onCreated.addListener(tab => {
+  if (tab.openerTabId != null) newWindows.add(tab.id);
+});
+browser.tabs.onRemoved.addListener(id => newWindows.delete(id));
+let sequence = 0;
+function confirmNavigation(source, destination) {
+  if (!nativePort) return Promise.resolve(false);
+  return new Promise(resolve => {
+    const id = String(++sequence);
+    const timer = setTimeout(() => { pending.delete(id); resolve(false); }, 10000);
+    pending.set(id, allowed => { clearTimeout(timer); pending.delete(id); resolve(allowed); });
+    try { nativePort.postMessage({type: "navigation", id, source, destination}); }
+    catch (_) { pending.get(id)?.(false); }
+  });
+}
+function host(url) { try { return new URL(url).host; } catch (_) { return null; } }
+
+const AD_DOMAINS = /(?:^|\.)(?:popads\.net|popcash\.net|adsterra\.com|propellerads\.com|exoclick\.com|exosrv\.com|tsyndicate\.com|trafficfactory\.biz|doubleclick\.net|googleadservices\.com|googlesyndication\.com|adservice\.google\.|onclickads\.net|adtrue\.com|adnxs\.com|juicyads\.com|bet365\.com|1xbet\.)/i;
+
+function isAd(url) {
+  try {
+    const u = new URL(url);
+    return AD_DOMAINS.test(u.hostname);
+  } catch (_) { return false; }
+}
+
+// Built-in Ad Blocker: silently cancel requests to known ad/popunder networks
+browser.webRequest.onBeforeRequest.addListener(details => {
+  if (isAd(details.url)) return {cancel: true};
+  return {};
+}, {urls: ["http://*/*", "https://*/*"], types: ["sub_frame", "script", "xmlhttprequest"]}, ["blocking"]);
+
+browser.webRequest.onBeforeRequest.addListener(async details => {
+  if (details.tabId < 0) return {};
+  if (isAd(details.url)) return {cancel: true};
+  const previousHop = requests.get(details.requestId);
+  newWindows.delete(details.tabId);
+  if (previousHop && host(previousHop) !== host(details.url)) {
+    if (!await confirmNavigation("", previousHop)) return {cancel: true};
+  }
+  requests.set(details.requestId, details.url);
+  return {};
+}, {urls: ["http://*/*", "https://*/*"], types: ["main_frame"]}, ["blocking"]);
+for (const event of [browser.webRequest.onCompleted, browser.webRequest.onErrorOccurred]) {
+  event.addListener(details => requests.delete(details.requestId),
+    {urls: ["http://*/*", "https://*/*"], types: ["main_frame"]});
+}
+const ready = browser.storage.local.get("speed").then(saved => {
+  if (allowed.includes(saved.speed)) speed = saved.speed;
+});
+async function update(value) {
+  await ready;
+  if (!allowed.includes(value)) return;
+  speed = value;
+  await browser.storage.local.set({speed});
+  const tabs = await browser.tabs.query({});
+  await Promise.all(tabs.map(tab => browser.tabs.sendMessage(tab.id, {speed}).catch(() => {})));
+}
+browser.runtime.onMessage.addListener(async message => {
+  await ready;
+  if (message.type === "speed") return {speed};
+});
+function connect() {
+  nativePort = browser.runtime.connectNative("anibrowser");
+  nativePort.onMessage.addListener(message => {
+    if (message.type === "navigationResult") pending.get(message.id)?.(message.allowed === true);
+    else update(message.speed);
+  });
+  nativePort.onDisconnect.addListener(() => {
+    nativePort = null;
+    for (const resolve of [...pending.values()]) resolve(false);
+    setTimeout(connect, 1000);
+  });
+  nativePort.postMessage({type: "ready"});
+}
+ready.then(connect);

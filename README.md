@@ -1,31 +1,45 @@
-# AniBrowser for iOS
+# AniBrowser
 
-A native personal browser for iPhone and iPad using UIKit and WKWebView. Requires iOS 16 or newer. Includes AniHome, saved websites, eight tabs, persistent HTML5 video speed, seek controls, popup/redirect confirmation, a small ad-domain filter, fullscreen browsing, shared website cookies, and downloads.
+A browser ecosystem focused on a personal home screen, persistent video playback speed, and control over website navigation.
 
-**Status:** initial personal build. Device compilation, 9 JavaScript tests, 12 native policy checks, WebKit content-rule compilation and iOS 18.5 simulator launch are validated in GitHub Actions. Physical iPhone installation and streaming playback remain unverified. Not a stable release.
+## Platforms
 
-## Free installation using Windows
+| Platform | Implementation | Status |
+| --- | --- | --- |
+| Android | Kotlin, Mozilla Android Components, GeckoView | Source and local APK builds |
+| iOS / iPadOS | Swift, UIKit, WebKit | Source and unsigned IPA cloud builds |
+| Windows | Planned | No desktop application or installer yet |
+| Linux | Under consideration | No application or package yet |
 
-Read [INSTALL-WINDOWS.md](INSTALL-WINDOWS.md). A standard GitHub macOS runner compiles an unsigned IPA; Sideloadly on Windows signs and installs it using a free Apple Account. No personally owned Mac or paid developer membership is required. Free signing expires after seven days and needs refreshing.
+Android and iOS are separate native implementations with shared playback behavior. Features and website compatibility vary by platform.
 
-Use this folder as the root of a separate public GitHub repository, including `.github/workflows/build-ios.yml`. Run **Actions → Build free iOS IPA**. The workflow refuses private repositories to avoid paid runner usage. Never upload Apple credentials or the outer Android workspace.
+## Features
 
-## Development
+- AniHome with saved website tiles.
+- Persistent HTML5 video playback speed from 1× to 2×.
+- Browser tabs and website sessions.
+- Popup and redirect controls.
+- Platform-specific fullscreen and playback controls.
 
-On macOS with Xcode and XcodeGen:
+Protected streaming, subtitles, sign-in and player behavior depend on each website and platform. AniBrowser does not bypass DRM. Current builds are personal prototypes, not a stable public release.
 
-```sh
-node --test Tests/*.test.cjs
-swiftc Sources/BrowserPolicy.swift Tests/main.swift -o /tmp/ani-policy-tests
-/tmp/ani-policy-tests
-xcodegen generate
-xcodebuild -project AniBrowser.xcodeproj -scheme AniBrowser -sdk iphoneos -configuration Release -destination 'generic/platform=iOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+## Build and install
+
+- **Android:** [Build instructions](android/README.md). Run `./build-android.ps1` on Windows or use the Gradle wrapper inside `android/`.
+- **iPhone and iPad:** [Development](ios/README.md) and [free installation from Windows](ios/INSTALL-WINDOWS.md). Run **Actions → Build free iOS IPA**. Free Apple Account signing requires refreshing every seven days.
+- **Windows and Linux:** desktop builds are not available yet.
+
+The iOS workflow uses a standard GitHub-hosted runner in this public repository and needs no Apple credentials. Download temporary build artifacts from completed Actions runs.
+
+## Source layout
+
+```text
+android/             Android app, assets, tests and Gradle configuration
+ios/                 iPhone/iPad app, assets, tests and build configuration
+.github/workflows/   Build and source-check workflows
+build-android.ps1    Windows helper for building the Android app
 ```
 
-`Resources/playback.js` is the Android MPL-2.0 controller. `bridge.js` supplies its messaging interface in an isolated WKContentWorld in every frame. Native state is requested every 750 ms while visible; speed recovery remains bounded. Keep the copied controller and tests synchronized when updating Android behavior.
+## License and attribution
 
-The workflow packages Payload/AniBrowser.app into an unsigned IPA with a SHA-256 as a short-lived artifact. See the installation guide for capability differences and device checks.
-
-Source code is under [MPL-2.0](LICENSE). Product and site names belong to their respective owners.
-
-Simulator checks use Apple's deployment-target workaround for [WebKit bug 293831](https://developer.apple.com/forums/thread/785964); the actual device app still targets iOS 16.0. Simulator checks do not establish iOS 16 runtime compatibility.
+Source code is distributed under the [Mozilla Public License 2.0](LICENSE). Android derives from [Mozilla Reference Browser](https://github.com/mozilla-mobile/reference-browser), using Android Components and GeckoView. Existing source notices are retained. AniBrowser is independent and is not an official Mozilla product. Third-party libraries and media retain their respective licenses; product names and trademarks belong to their owners.

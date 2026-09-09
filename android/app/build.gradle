@@ -1,0 +1,368 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+plugins {
+    alias libs.plugins.android.application
+    alias libs.plugins.compose.compiler
+    alias libs.plugins.dependency.analysis
+}
+
+apply from: "$project.rootDir/automation/gradle/versionCode.gradle"
+
+def baseVersionCode = generatedVersionCode
+
+import com.android.build.api.variant.BuildConfigField
+import com.android.build.api.variant.FilterConfiguration
+import groovy.json.JsonOutput
+
+androidComponents {
+    beforeVariants(selector().all()) { variantBuilder ->
+        if (variantBuilder.buildType == "release") {
+            variantBuilder.enable = false
+        }
+        if (variantBuilder.buildType == "nightly") {
+            variantBuilder.enableUnitTest = true
+        }
+    }
+
+    onVariants(selector().all()) { variant ->
+        // -------------------------------------------------------------------------
+        // 1. Sentry Token
+        // -------------------------------------------------------------------------
+        String sentryToken = "null"
+        try {
+            File tokenFile = file("${rootDir}/.sentry_token")
+            if (tokenFile.exists()) {
+                sentryToken = '"' + tokenFile.text.trim() + '"'
+                println("(Added Sentry token from file)")
+            }
+        } catch (Exception ignored) { }
+
+        variant.buildConfigFields.put("SENTRY_TOKEN",
+                new BuildConfigField("String", sentryToken, "Sentry Token"))
+
+        // -------------------------------------------------------------------------
+        // 2. Crash Reporting & Telemetry
+        // -------------------------------------------------------------------------
+        boolean crashReporting = project.hasProperty("crashReportEnabled") && project.property("crashReportEnabled") == "true"
+        variant.buildConfigFields.put("CRASH_REPORTING_ENABLED",
+                new BuildConfigField("boolean", crashReporting.toString(), "Crash Reporting"))
+
+        boolean telemetry = project.hasProperty("telemetry") && project.property("telemetry") == "true"
+        variant.buildConfigFields.put("TELEMETRY_ENABLED",
+                new BuildConfigField("boolean", telemetry.toString(), "Telemetry"))
+
+        // -------------------------------------------------------------------------
+        // 3. Official Build Flag
+        // -------------------------------------------------------------------------
+        boolean official = project.hasProperty("official") || gradle.hasProperty("localProperties.official")
+        variant.buildConfigFields.put("MOZILLA_OFFICIAL",
+                new BuildConfigField("Boolean", official.toString(), "Official Build"))
+
+        // -------------------------------------------------------------------------
+        // 4. Version Codes (Only if IS_RELEASED is true)
+        // -------------------------------------------------------------------------
+        // Note: In the new API, checking buildConfigFields defined in build types is harder.
+        // We check the build type name directly instead.
+        if (variant.buildType == "nightly") {
+            // Logic adapted for new API
+            def baseCode = baseVersionCode
+            if (baseCode % 2 != 0) baseCode += 1 // Ensure even
+
+            variant.outputs.each { output ->
+                def abiFilter = output.filters.find { it.filterType == FilterConfiguration.FilterType.ABI }                // Note: Accessing specific ABI names in AGP 9 via 'filters' can be tricky
+                def abiName = abiFilter?.identifier // This returns "x86", "arm64-v8a", etc.
+
+                // Simplified mapping for demonstration:
+                def addedCode = 0
+                if (project.hasProperty("aab")) {
+                    addedCode = 1
+                } else if (abiName != null) {
+                    // FIX: Check the abiName identifier instead of output.name
+                    if (abiName == "x86_64") addedCode = 6
+                    else if (abiName == "x86") addedCode = 4
+                    else if (abiName == "arm64-v8a") addedCode = 2
+                }
+
+                output.versionCode.set(baseCode + addedCode)
+                output.versionName.set(Config.releaseVersionName(project))
+            }
+        }
+    }
+}
+
+android {
+    defaultConfig {
+        applicationId "app.anibrowser.android"
+        buildToolsVersion Config.buildToolsVersion
+        compileSdk {
+            version = release(Config.compileSdkMajorVersion) {
+                minorApiLevel = Config.compileSdkMinorVersion
+            }
+        }
+        minSdkVersion Config.minSdkVersion
+        targetSdkVersion Config.targetSdkVersion
+        versionCode 1
+        versionName Config.generateDebugVersionName()
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments clearPackageData: 'true'
+    }
+
+    def releaseTemplate = {
+        minifyEnabled true
+        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        matchingFallbacks = ['release'] // Use on the "release" build type in dependencies (AARs)
+
+        if (gradle.hasProperty("localProperties.autosignReleaseWithDebugKey")) {
+            signingConfig signingConfigs.debug
+        }
+
+        if (gradle.hasProperty("localProperties.debuggable")) {
+            debuggable true
+        }
+    }
+
+    buildFeatures {
+        buildConfig = true
+        compose = true
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+        }
+        nightly releaseTemplate >> {
+            buildConfigField "boolean", "IS_RELEASED", "true"
+        }
+    }
+
+    testOptions {
+        execution = 'ANDROIDX_TEST_ORCHESTRATOR'
+        animationsDisabled = true
+    }
+
+    lintOptions {
+        lintConfig = file("lint.xml")
+        disable 'GradleDependency', 'AndroidGradlePluginVersion'
+    }
+
+    splits {
+        abi {
+            enable = true
+
+            reset()
+
+            include "armeabi-v7a", "arm64-v8a", "x86_64"
+        }
+    }
+
+    namespace = 'org.mozilla.reference.browser'
+}
+
+kotlin {
+    jvmToolchain(Config.jvmTargetCompatibility)
+}
+
+// Select the Glean from GeckoView.
+// `service-sync-logins` requires Glean, which pulls in glean-native,
+// but that's also provided by geckoview-omni, so now we need to select which one to use.
+project.configurations.configureEach {
+    resolutionStrategy.capabilitiesResolution.withCapability("org.mozilla.telemetry:glean-native") {
+        def toBeSelected = candidates.find { it.id instanceof ModuleComponentIdentifier && it.id.module.contains('geckoview') }
+        if (toBeSelected != null) {
+            select(toBeSelected)
+        }
+        because 'use GeckoView Glean instead of standalone Glean'
+    }
+}
+
+dependencies {
+
+    // We pick up JNA transitively by way of Glean, which is currently on version 5.14.0.
+    // However, we need to force version 5.17.0 due to Google Play's 16KB page size requirement.
+    // JNA 5.15.0+ crashes on Android <7, however, so it can't be bumped in Glean at this time.
+    // Therefore, manually force the use of version 5.17.0 at the app level since we only support
+    // running on Android 8+ now anyway.
+    constraints {
+        implementation(libs.jna)
+    }
+
+    implementation libs.androidx.activity
+    implementation libs.androidx.annotation
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.browser
+    implementation libs.androidx.cardview
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.coordinatorlayout
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.fragment
+    implementation libs.androidx.lifecycle.common
+    implementation libs.androidx.lifecycle.compose
+    implementation libs.androidx.lifecycle.process
+    implementation libs.androidx.lifecycle.viewmodel
+    implementation libs.androidx.preference.ktx
+    implementation libs.androidx.recyclerview
+    implementation libs.androidx.swiperefreshlayout
+    implementation libs.androidx.work.runtime.ktx
+
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.foundation
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.runtime
+    implementation libs.androidx.compose.ui.base
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.ui.text
+    implementation libs.androidx.compose.ui.tooling
+
+    implementation libs.google.material
+    implementation libs.jspecify
+    implementation libs.kotlinx.coroutines.core
+
+    implementation libs.mozilla.browser.domains
+    implementation libs.mozilla.browser.engine.gecko
+    implementation libs.mozilla.browser.errorpages
+    implementation libs.mozilla.browser.icons
+    implementation libs.mozilla.browser.menu
+    implementation libs.mozilla.browser.menu2
+    implementation libs.mozilla.browser.session.storage
+    implementation libs.mozilla.browser.state
+    implementation libs.mozilla.browser.storage.sync
+    implementation libs.mozilla.browser.tabstray
+    implementation libs.mozilla.browser.thumbnails
+    implementation libs.mozilla.browser.toolbar
+
+    implementation libs.mozilla.compose.awesomebar
+
+    implementation libs.mozilla.concept.awesomebar
+    implementation libs.mozilla.concept.base
+    implementation libs.mozilla.concept.engine
+    implementation libs.mozilla.concept.fetch
+    implementation libs.mozilla.concept.menu
+    implementation libs.mozilla.concept.push
+    implementation libs.mozilla.concept.storage
+    implementation libs.mozilla.concept.sync
+    implementation libs.mozilla.concept.toolbar
+
+    implementation libs.mozilla.feature.accounts.base
+    implementation libs.mozilla.feature.accounts.push
+    implementation libs.mozilla.feature.addons
+    implementation libs.mozilla.feature.app.links
+    implementation libs.mozilla.feature.awesomebar
+    implementation libs.mozilla.feature.autofill
+    implementation libs.mozilla.feature.contextmenu
+    implementation libs.mozilla.feature.customtabs
+    implementation libs.mozilla.feature.downloads
+    implementation libs.mozilla.feature.findinpage
+    implementation libs.mozilla.feature.intent
+    implementation libs.mozilla.feature.media
+    implementation libs.mozilla.feature.prompts
+    implementation libs.mozilla.feature.push
+    implementation libs.mozilla.feature.pwa
+    implementation libs.mozilla.feature.qr
+    implementation libs.mozilla.feature.readerview
+    implementation libs.mozilla.feature.search
+    implementation libs.mozilla.feature.session
+    implementation libs.mozilla.feature.sitepermissions
+    implementation libs.mozilla.feature.syncedtabs
+    implementation libs.mozilla.feature.tabs
+    implementation libs.mozilla.feature.toolbar
+    implementation libs.mozilla.feature.webauthn
+    implementation libs.mozilla.feature.webcompat
+    implementation libs.mozilla.feature.webnotifications
+
+    implementation libs.mozilla.lib.crash.base
+    implementation libs.mozilla.lib.crash.sentry
+    implementation libs.mozilla.lib.dataprotect
+    implementation libs.mozilla.lib.publicsuffixlist
+    implementation libs.mozilla.lib.push.firebase
+    implementation libs.mozilla.lib.state
+
+    implementation libs.mozilla.service.firefox.accounts
+    implementation libs.mozilla.service.location
+    implementation libs.mozilla.service.sync.logins
+
+    implementation libs.mozilla.support.appservices
+    implementation libs.mozilla.support.base
+    implementation libs.mozilla.support.ktx
+    implementation libs.mozilla.support.utils
+    implementation libs.mozilla.support.webextensions
+
+    implementation libs.mozilla.ui.colors
+    implementation libs.mozilla.ui.icons
+    implementation libs.mozilla.ui.tabcounter
+    implementation libs.mozilla.ui.widgets
+
+    androidTestImplementation libs.androidx.test.core
+    androidTestImplementation libs.androidx.test.espresso.core
+    androidTestImplementation libs.androidx.test.espresso.idling.resources
+    constraints {
+        implementation(libs.androidx.test.monitor)
+    }
+    androidTestImplementation libs.androidx.test.monitor
+    androidTestImplementation libs.androidx.test.rules
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.uiautomator
+
+    androidTestImplementation libs.hamcrest.core
+    androidTestImplementation libs.hamcrest.library
+    androidTestImplementation libs.junit
+    androidTestImplementation libs.mockwebserver
+    androidTestImplementation libs.okhttp
+    constraints {
+        implementation(libs.okio)  // needed to avoid picking up an older release transitively
+    }
+    androidTestImplementation libs.okio
+
+    androidTestUtil libs.androidx.test.orchestrator
+}
+
+// -------------------------------------------------------------------------------------------------
+// Task for printing APK information for the requested variant
+// Usage: ./gradlew printVariants
+// -------------------------------------------------------------------------------------------------
+tasks.register('printVariants') {
+    doLast {
+        def variants = android.applicationVariants.collect { variant ->
+            [
+                    apks      : variant.outputs.collect { output ->
+                        [
+                                abi     : output.getFilter(FilterConfiguration.FilterType.ABI.name()),
+                                fileName: output.outputFile.name
+                        ]
+                    },
+                    build_type: variant.buildType.name,
+                    name      : variant.name,
+            ]
+        }
+        println 'variants: ' + JsonOutput.toJson(variants)
+    }
+}
+
+tasks.register('printGeckoviewVersion') {
+    doLast {
+        def configuration = configurations.implementationDependenciesMetadata
+        def dependencies = configuration.incoming.resolutionResult.allDependencies
+        def geckoviewDependency = dependencies.find { it.selected.id.moduleIdentifier.group == 'org.mozilla.geckoview' }
+        println('geckoviewVersion: ' + JsonOutput.toJson(geckoviewDependency.selected.moduleVersion.version))
+    }
+}
+
+if (gradle.hasProperty('localProperties.dependencySubstitutions.geckoviewTopsrcdir')) {
+    if (gradle.hasProperty('localProperties.dependencySubstitutions.geckoviewTopobjdir')) {
+        ext.topobjdir = gradle."localProperties.dependencySubstitutions.geckoviewTopobjdir"
+    }
+    ext.topsrcdir = gradle."localProperties.dependencySubstitutions.geckoviewTopsrcdir"
+    apply from: "${topsrcdir}/substitute-local-geckoview.gradle"
+}
+
+if (gradle.hasProperty('localProperties.autoPublish.android-components.dir')) {
+    ext.acSrcDir = gradle."localProperties.autoPublish.android-components.dir"
+    apply from: "../${acSrcDir}/substitute-local-ac.gradle"
+}
+
+if (gradle.hasProperty('localProperties.autoPublish.application-services.dir')) {
+    ext.appServicesSrcDir = gradle."localProperties.autoPublish.application-services.dir"
+    apply from: "../${appServicesSrcDir}/build-scripts/substitute-local-appservices.gradle"
+}
