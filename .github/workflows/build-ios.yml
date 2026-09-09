@@ -32,6 +32,7 @@ jobs:
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
             build | tee build.log
       - name: Package for Windows signing
+        id: package
         run: |
           mkdir -p output/Payload
           cp -R build/Build/Products/Release-iphoneos/AniBrowser.app output/Payload/
@@ -46,6 +47,7 @@ jobs:
       - name: Launch on iPhone and iPad simulators
         run: bash Tests/simulator-smoke.sh
       - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() && steps.package.outcome == 'success' }}
         with:
           name: AniBrowser-iOS-unsigned
           path: |
@@ -62,4 +64,6 @@ jobs:
           path: |
             build.log
             simulator-build.log
+            output/diagnostics/
+            output/*-home.png
           retention-days: 3
