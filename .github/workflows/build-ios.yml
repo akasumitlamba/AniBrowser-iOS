@@ -20,6 +20,8 @@ jobs:
         run: |
           swiftc Sources/BrowserPolicy.swift Tests/main.swift -o "$RUNNER_TEMP/policy-tests"
           "$RUNNER_TEMP/policy-tests"
+      - name: Compile WebKit content rules
+        run: swift Tests/content-rules.swift
       - name: Generate Xcode project
         run: |
           brew install xcodegen
