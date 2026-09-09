@@ -7,6 +7,7 @@ final class BrowserTab {
     var observers: [NSKeyValueObservation] = []
     var directURL: URL?
     var home = true
+    var desktop = false
     init(_ webView: WKWebView) { self.webView = webView }
 }
 
@@ -361,10 +362,9 @@ final class BrowserViewController: UIViewController, WKNavigationDelegate, WKUID
             self.current?.webView.reload()
         })
         alert.addAction(UIAlertAction(title: "Switch mobile / desktop layout", style: .default) { [weak self] _ in
-            guard let web = self?.current?.webView else { return }
-            let preferences = web.configuration.defaultWebpagePreferences
-            preferences.preferredContentMode = preferences.preferredContentMode == .desktop ? .mobile : .desktop
-            web.reload()
+            guard let tab = self?.current else { return }
+            tab.desktop.toggle()
+            tab.webView.reload()
         })
         alert.addAction(UIAlertAction(title: "Reset redirect permissions", style: .default) { [weak self] _ in
             self?.defaults.removeObject(forKey: "redirects")
@@ -432,6 +432,13 @@ final class BrowserViewController: UIViewController, WKNavigationDelegate, WKUID
             finish(false, false)
             alert?.dismiss(animated: true)
         }
+    }
+
+    func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,
+                 preferences: WKWebpagePreferences,
+                 decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
+        preferences.preferredContentMode = tabs.first { $0.webView === webView }?.desktop == true ? .desktop : .mobile
+        self.webView(webView, decidePolicyFor: action) { policy in decisionHandler(policy, preferences) }
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,
