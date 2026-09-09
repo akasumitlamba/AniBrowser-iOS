@@ -9,6 +9,12 @@ collect_diagnostics() {
     xcrun simctl spawn "$DEVICE_ID" log show --style compact --last 3m --predicate 'process == "AniBrowser"' > output/diagnostics/app.log 2>&1 || true
   fi
   /usr/bin/log show --style compact --last 3m --predicate 'eventMessage CONTAINS "app.anibrowser.ios"' > output/diagnostics/host.log 2>&1 || true
+  # ReportCrash writes its report asynchronously after the launch command fails.
+  sleep 15
+  find "$HOME/Library/Logs/DiagnosticReports" -name '*AniBrowser*' -type f -exec cp {} output/diagnostics/ \; 2>/dev/null || true
+  if [ -n "${DEVICE_ID:-}" ]; then
+    find "$HOME/Library/Developer/CoreSimulator/Devices/$DEVICE_ID/data/Library/Logs" -name '*AniBrowser*' -type f -exec cp {} output/diagnostics/ \; 2>/dev/null || true
+  fi
 }
 trap collect_diagnostics EXIT
 xcodebuild -project AniBrowser.xcodeproj -scheme AniBrowser -configuration Release \
