@@ -43,12 +43,15 @@ jobs:
           cd output
           ditto -c -k --keepParent Payload AniBrowser-unsigned.ipa
           shasum -a 256 AniBrowser-unsigned.ipa > SHA256.txt
+      - name: Launch on iPhone and iPad simulators
+        run: bash Tests/simulator-smoke.sh
       - uses: actions/upload-artifact@v4
         with:
           name: AniBrowser-iOS-unsigned
           path: |
             output/AniBrowser-unsigned.ipa
             output/SHA256.txt
+            output/*-home.png
             INSTALL-WINDOWS.md
           retention-days: 3
           if-no-files-found: error
@@ -56,5 +59,7 @@ jobs:
         if: failure()
         with:
           name: iOS-build-log
-          path: build.log
+          path: |
+            build.log
+            simulator-build.log
           retention-days: 3

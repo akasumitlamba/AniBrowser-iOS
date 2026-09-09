@@ -1,4 +1,6 @@
 build/
+simulator-build/
+*.log
 output/
 *.xcodeproj/
 .DS_Store
