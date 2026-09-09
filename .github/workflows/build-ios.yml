@@ -1,0 +1,60 @@
+name: Build free iOS IPA
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ios-build
+  cancel-in-progress: false
+jobs:
+  build:
+    # Standard hosted runners are free in public repositories. Never run privately.
+    if: github.event.repository.private == false
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check playback and bridge
+        run: node --test Tests/*.test.cjs
+      - name: Check native URL and navigation policy
+        run: |
+          swiftc Sources/BrowserPolicy.swift Tests/main.swift -o "$RUNNER_TEMP/policy-tests"
+          "$RUNNER_TEMP/policy-tests"
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+      - name: Build unsigned device app
+        run: |
+          set -o pipefail
+          xcodebuild -project AniBrowser.xcodeproj -scheme AniBrowser \
+            -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            build | tee build.log
+      - name: Package for Windows signing
+        run: |
+          mkdir -p output/Payload
+          cp -R build/Build/Products/Release-iphoneos/AniBrowser.app output/Payload/
+          test -f output/Payload/AniBrowser.app/AniBrowser
+          test -f output/Payload/AniBrowser.app/playback.js
+          test -f output/Payload/AniBrowser.app/bridge.js
+          test -f output/Payload/AniBrowser.app/blocklist.json
+          plutil -lint output/Payload/AniBrowser.app/Info.plist
+          cd output
+          ditto -c -k --keepParent Payload AniBrowser-unsigned.ipa
+          shasum -a 256 AniBrowser-unsigned.ipa > SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AniBrowser-iOS-unsigned
+          path: |
+            output/AniBrowser-unsigned.ipa
+            output/SHA256.txt
+            INSTALL-WINDOWS.md
+          retention-days: 3
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: iOS-build-log
+          path: build.log
+          retention-days: 3

@@ -1,0 +1,3 @@
+[
+  {"trigger":{"url-filter":"^https?://([^/]+\\.)?(doubleclick\\.net|googlesyndication\\.com|popads\\.net|popcash\\.net)/","resource-type":["script","image","raw","popup"]},"action":{"type":"block"}}
+]
