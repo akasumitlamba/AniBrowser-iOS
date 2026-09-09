@@ -2,7 +2,7 @@
 
 A native personal browser for iPhone and iPad using UIKit and WKWebView. Requires iOS 16 or newer. Includes AniHome, saved websites, eight tabs, persistent HTML5 video speed, seek controls, popup/redirect confirmation, a small ad-domain filter, fullscreen browsing, shared website cookies, and downloads.
 
-**Status:** initial source implementation. Cloud compilation and physical iPhone installation/playback have not yet been verified. Not a stable release.
+**Status:** initial personal build. Device compilation, 9 JavaScript tests, 12 native policy checks, WebKit content-rule compilation and iOS 18.5 simulator launch are validated in GitHub Actions. Physical iPhone installation and streaming playback remain unverified. Not a stable release.
 
 ## Free installation using Windows
 
@@ -27,3 +27,5 @@ xcodebuild -project AniBrowser.xcodeproj -scheme AniBrowser -sdk iphoneos -confi
 The workflow packages Payload/AniBrowser.app into an unsigned IPA with a SHA-256 as a short-lived artifact. See the installation guide for capability differences and device checks.
 
 Source code is under [MPL-2.0](LICENSE). Product and site names belong to their respective owners.
+
+Simulator checks use Apple's deployment-target workaround for [WebKit bug 293831](https://developer.apple.com/forums/thread/785964); the actual device app still targets iOS 16.0. Simulator checks do not establish iOS 16 runtime compatibility.

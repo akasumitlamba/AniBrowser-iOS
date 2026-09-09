@@ -1,0 +1,10 @@
+{
+  "run": "https://github.com/akasumitlamba/AniBrowser-iOS/actions/runs/34337867332",
+  "commit": "116adcd",
+  "sha256": "e3c9eba1215c8db435a5651e6ea51c4b3e76d2aa1556e7fb2524b6430c707151",
+  "bytes": 2799720,
+  "minimum_ios": "16.0",
+  "signing": "unsigned; sign on Windows using free Apple Account",
+  "checks": "9 JS tests; 12 native policy checks; WebKit rule compilation; device build; iPhone and iPad iOS 18.5 simulator launches and clean Home screens",
+  "physical_device": "not tested"
+}
