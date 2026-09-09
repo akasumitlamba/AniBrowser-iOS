@@ -1,5 +1,8 @@
 #!/bin/bash
 set -euo pipefail
+# Xcode 16.4 / iOS 18.5 has a missing Swift WebKit overlay in this runner image.
+# Use the installed matching Xcode 16.3 / iOS 18.4 pair for simulator validation.
+export DEVELOPER_DIR=/Applications/Xcode_16.3.app/Contents/Developer
 mkdir -p output/diagnostics
 collect_diagnostics() {
   find "$HOME/Library/Logs/DiagnosticReports" -name '*AniBrowser*' -type f -exec cp {} output/diagnostics/ \; 2>/dev/null || true
@@ -27,7 +30,7 @@ for family in iPhone iPad; do
   DEVICE_FAMILY="$family" python3 - <<'PY' > /tmp/ani-device-id
 import json, os, subprocess
 devices = json.loads(subprocess.check_output(['xcrun','simctl','list','devices','available','--json']))
-matches = [d for group in devices['devices'].values() for d in group
+matches = [d for runtime, group in devices['devices'].items() if runtime.endswith('iOS-18-4') for d in group
            if d.get('isAvailable') and os.environ['DEVICE_FAMILY'] in d['name']]
 if not matches:
     raise SystemExit('No available simulator for ' + os.environ['DEVICE_FAMILY'])
