@@ -1,8 +1,7 @@
 #!/bin/bash
 set -euo pipefail
-# Xcode 16.4 / iOS 18.5 has a missing Swift WebKit overlay in this runner image.
-# Use the installed matching Xcode 16.3 / iOS 18.4 pair for simulator validation.
-export DEVELOPER_DIR=/Applications/Xcode_16.3.app/Contents/Developer
+# WebKit bug 293831: simulator-only deployment target workaround recommended by Apple.
+# The device build still supports iOS 16.0; this launch check covers iOS 18.5 only.
 mkdir -p output/diagnostics
 collect_diagnostics() {
   find "$HOME/Library/Logs/DiagnosticReports" -name '*AniBrowser*' -type f -exec cp {} output/diagnostics/ \; 2>/dev/null || true
@@ -23,14 +22,14 @@ trap collect_diagnostics EXIT
 xcodebuild -project AniBrowser.xcodeproj -scheme AniBrowser -configuration Release \
   -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath simulator-build CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- \
-  CODE_SIGNING_REQUIRED=NO build > simulator-build.log 2>&1
+  CODE_SIGNING_REQUIRED=NO IPHONEOS_DEPLOYMENT_TARGET=18.4 build > simulator-build.log 2>&1
 codesign --verify --deep --strict simulator-build/Build/Products/Release-iphonesimulator/AniBrowser.app
 mkdir -p output
 for family in iPhone iPad; do
   DEVICE_FAMILY="$family" python3 - <<'PY' > /tmp/ani-device-id
 import json, os, subprocess
 devices = json.loads(subprocess.check_output(['xcrun','simctl','list','devices','available','--json']))
-matches = [d for runtime, group in devices['devices'].items() if runtime.endswith('iOS-18-4') for d in group
+matches = [d for runtime, group in devices['devices'].items() if runtime.endswith('iOS-18-5') for d in group
            if d.get('isAvailable') and os.environ['DEVICE_FAMILY'] in d['name']]
 if not matches:
     raise SystemExit('No available simulator for ' + os.environ['DEVICE_FAMILY'])
