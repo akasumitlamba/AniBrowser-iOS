@@ -297,6 +297,12 @@ final class BrowserViewController: UIViewController, WKNavigationDelegate, WKUID
         present(alert, animated: true)
     }
 
+    private func afterMenuDismiss(_ action: @escaping () -> Void) {
+        if let menu = presentedViewController {
+            menu.dismiss(animated: true, completion: action)
+        } else { action() }
+    }
+
     private func showTabs() {
         let alert = sheet("Tabs · \(tabs.count)/8")
         for (index, tab) in tabs.enumerated() {
@@ -310,7 +316,9 @@ final class BrowserViewController: UIViewController, WKNavigationDelegate, WKUID
                 self?.current?.home = false; self?.mountCurrent()
             })
         }
-        alert.addAction(UIAlertAction(title: "New tab", style: .default) { [weak self] _ in self?.newTab() })
+        let addTab = UIAlertAction(title: "New tab", style: .default) { [weak self] _ in self?.newTab() }
+        addTab.isEnabled = tabs.count < 8
+        alert.addAction(addTab)
         alert.addAction(UIAlertAction(title: "Close current tab", style: .destructive) { [weak self] _ in
             guard let self = self, let tab = self.current else { return }
             self.pauseCurrent()
@@ -350,7 +358,9 @@ final class BrowserViewController: UIViewController, WKNavigationDelegate, WKUID
 
     private func showMenu() {
         let alert = sheet("AniBrowser")
-        alert.addAction(UIAlertAction(title: "Add to AniHome", style: .default) { [weak self] _ in self?.addSite() })
+        alert.addAction(UIAlertAction(title: "Add to AniHome", style: .default) { [weak self] _ in
+            self?.afterMenuDismiss { [weak self] in self?.addSite() }
+        })
         alert.addAction(UIAlertAction(title: "Fullscreen", style: .default) { [weak self] _ in self?.setFullscreen(true) })
         alert.addAction(UIAlertAction(title: "Ad filter: \(shield && blocker != nil ? "on" : "off") · toggle", style: .default) { [weak self] _ in
             guard let self = self else { return }
@@ -371,7 +381,7 @@ final class BrowserViewController: UIViewController, WKNavigationDelegate, WKUID
         })
         alert.addAction(UIAlertAction(title: "Share website", style: .default) { [weak self] _ in
             guard let self = self, let url = self.current?.webView.url else { return }
-            self.share(url)
+            self.afterMenuDismiss { [weak self] in self?.share(url) }
         })
         show(alert)
     }
